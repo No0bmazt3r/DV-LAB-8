@@ -324,3 +324,10 @@ window.addEventListener("resize", () => {
     
     renderTimeline();
 });
+
+// Theme Toggle
+const themeToggleBtn = document.getElementById("theme-toggle");
+themeToggleBtn.addEventListener("click", () => {
+    const isLight = document.body.getAttribute("data-theme") === "light";
+    document.body.setAttribute("data-theme", isLight ? "dark" : "light");
+});

@@ -1,4 +1,51 @@
 /* Reset and Base Styles */
+:root {
+    --bg-color: #030712;
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    --panel-bg: rgba(30, 41, 59, 0.4);
+    --panel-border: rgba(255, 255, 255, 0.08);
+    --input-bg: rgba(15, 23, 42, 0.6);
+    --input-border: rgba(255, 255, 255, 0.1);
+    --input-focus: rgba(15, 23, 42, 0.9);
+    --input-text: #f8fafc;
+    --axis-color: rgba(255, 255, 255, 0.1);
+    --shadow-color: rgba(0, 0, 0, 0.5);
+    --bg-gradient-1: rgba(56, 189, 248, 0.08);
+    --bg-gradient-2: rgba(168, 85, 247, 0.08);
+    --heading-gradient-1: #f8fafc;
+    --heading-gradient-2: #94a3b8;
+    --select-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2394a3b8'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+    --option-bg: #0f172a;
+    --tooltip-bg: rgba(15, 23, 42, 0.95);
+    --tooltip-border: rgba(255, 255, 255, 0.1);
+    --tooltip-text: #f8fafc;
+}
+
+[data-theme="light"] {
+    --bg-color: #f8fafc;
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --panel-bg: rgba(255, 255, 255, 0.7);
+    --panel-border: rgba(0, 0, 0, 0.1);
+    --input-bg: rgba(255, 255, 255, 0.9);
+    --input-border: rgba(0, 0, 0, 0.2);
+    --input-focus: #ffffff;
+    --input-text: #0f172a;
+    --axis-color: rgba(0, 0, 0, 0.1);
+    --shadow-color: rgba(0, 0, 0, 0.05);
+    --bg-gradient-1: rgba(56, 189, 248, 0.15);
+    --bg-gradient-2: rgba(168, 85, 247, 0.15);
+    --heading-gradient-1: #0f172a;
+    --heading-gradient-2: #475569;
+    --select-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23475569'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+    --option-bg: #ffffff;
+    /* Tooltip remains dark in light mode for a premium feel */
+    --tooltip-bg: rgba(15, 23, 42, 0.98);
+    --tooltip-border: rgba(255, 255, 255, 0.1);
+    --tooltip-text: #f8fafc;
+}
+
 * {
     box-sizing: border-box;
     margin: 0;
@@ -7,11 +54,12 @@
 
 body {
     font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-    background-color: #030712; /* Tailwind Gray 950 */
-    color: #f8fafc;
+    background-color: var(--bg-color);
+    color: var(--text-primary);
     line-height: 1.6;
     overflow-x: hidden;
     min-height: 100vh;
+    transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .app-background {
@@ -22,8 +70,9 @@ body {
     height: 100vh;
     z-index: -1;
     background: 
-        radial-gradient(circle at 15% 50%, rgba(56, 189, 248, 0.08), transparent 25%),
-        radial-gradient(circle at 85% 30%, rgba(168, 85, 247, 0.08), transparent 25%);
+        radial-gradient(circle at 15% 50%, var(--bg-gradient-1), transparent 25%),
+        radial-gradient(circle at 85% 30%, var(--bg-gradient-2), transparent 25%);
+    transition: all 0.3s ease;
 }
 
 .container {
@@ -34,12 +83,13 @@ body {
 
 /* Glassmorphism Panels */
 .glass-panel {
-    background: rgba(30, 41, 59, 0.4);
+    background: var(--panel-bg);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border: 1px solid var(--panel-border);
     border-radius: 20px;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 25px 50px -12px var(--shadow-color);
+    transition: background 0.3s ease, border 0.3s ease, box-shadow 0.3s ease;
 }
 
 /* Header */
@@ -48,6 +98,12 @@ header {
     margin-bottom: 30px;
     position: relative;
     overflow: hidden;
+}
+
+.header-flex {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
 }
 
 header::before {
@@ -62,7 +118,7 @@ header h1 {
     font-size: 3rem;
     font-weight: 700;
     margin-bottom: 10px;
-    background: linear-gradient(to right, #f8fafc, #94a3b8);
+    background: linear-gradient(to right, var(--heading-gradient-1), var(--heading-gradient-2));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     letter-spacing: -0.02em;
@@ -70,9 +126,47 @@ header h1 {
 
 header p {
     font-size: 1.15rem;
-    color: #94a3b8;
+    color: var(--text-secondary);
     font-weight: 300;
 }
+
+/* Theme Toggle Button */
+.theme-toggle-btn {
+    background: transparent;
+    border: 1px solid var(--panel-border);
+    color: var(--text-primary);
+    padding: 10px;
+    border-radius: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.theme-toggle-btn:hover {
+    background: var(--input-bg);
+}
+
+[data-theme="light"] .moon-icon {
+    display: block;
+}
+
+[data-theme="light"] .sun-icon {
+    display: none;
+}
+
+[data-theme="dark"] .moon-icon {
+    display: none;
+}
+
+[data-theme="dark"] .sun-icon {
+    display: block;
+}
+
+/* Default state assumes dark mode */
+.sun-icon { display: block; }
+.moon-icon { display: none; }
 
 /* Controls Section */
 .controls {
@@ -96,7 +190,7 @@ header p {
 .control-group label {
     font-size: 0.85rem;
     font-weight: 500;
-    color: #94a3b8;
+    color: var(--text-secondary);
     margin-bottom: 8px;
     text-transform: uppercase;
     letter-spacing: 0.05em;
@@ -111,21 +205,18 @@ header p {
 .search-icon {
     position: absolute;
     left: 14px;
-    color: #64748b;
+    color: var(--text-secondary);
 }
 
-.control-group input {
-    padding-left: 42px;
-}
-
+/* Base input and select styles */
 .control-group input,
 .control-group select {
     width: 100%;
     padding: 14px 16px;
-    background: rgba(15, 23, 42, 0.6);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: var(--input-bg);
+    border: 1px solid var(--input-border);
     border-radius: 12px;
-    color: #f8fafc;
+    color: var(--input-text);
     font-size: 1rem;
     font-family: inherit;
     outline: none;
@@ -133,9 +224,14 @@ header p {
     appearance: none;
 }
 
+/* OVERRIDE: Specific padding for the search input so the icon doesn't overlap text */
+.control-group input[type="text"] {
+    padding-left: 42px;
+}
+
 .control-group select {
     padding-right: 40px;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2394a3b8'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+    background-image: var(--select-icon);
     background-repeat: no-repeat;
     background-position: right 14px center;
     background-size: 16px;
@@ -144,13 +240,13 @@ header p {
 .control-group input:focus,
 .control-group select:focus {
     border-color: #38bdf8;
-    background: rgba(15, 23, 42, 0.9);
+    background: var(--input-focus);
     box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.15);
 }
 
 .control-group select option {
-    background-color: #0f172a;
-    color: #f8fafc;
+    background-color: var(--option-bg);
+    color: var(--input-text);
 }
 
 .glow-btn {
@@ -198,14 +294,14 @@ header p {
     position: absolute;
     bottom: 0; right: 0;
     width: 60px; height: 60px;
-    background: radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(100,100,100,0.1) 0%, transparent 70%);
     border-radius: 50%;
     transform: translate(20%, 20%);
 }
 
 .stat-label {
     font-size: 0.85rem;
-    color: #94a3b8;
+    color: var(--text-secondary);
     text-transform: uppercase;
     letter-spacing: 0.05em;
     font-weight: 500;
@@ -215,7 +311,7 @@ header p {
 .stat-value {
     font-size: 2.5rem;
     font-weight: 700;
-    background: linear-gradient(135deg, #fff, #94a3b8);
+    background: linear-gradient(135deg, #38bdf8, var(--text-secondary));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 }
@@ -245,11 +341,11 @@ header p {
     font-size: 1.5rem;
     font-weight: 600;
     margin-bottom: 5px;
-    color: #f8fafc;
+    color: var(--text-primary);
 }
 
 .timeline-header p {
-    color: #64748b;
+    color: var(--text-secondary);
     font-size: 0.95rem;
 }
 
@@ -259,16 +355,16 @@ header p {
     gap: 20px;
     margin-bottom: 30px;
     padding: 15px 20px;
-    background: rgba(15, 23, 42, 0.4);
+    background: var(--input-bg);
     border-radius: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--panel-border);
 }
 
 .legend-item {
     display: flex;
     align-items: center;
     font-size: 0.9rem;
-    color: #cbd5e1;
+    color: var(--text-primary);
     font-weight: 500;
 }
 
@@ -297,10 +393,14 @@ header p {
 /* D3 SVG Styles */
 .event-circle {
     cursor: crosshair;
-    stroke: rgba(255,255,255,0.2);
-    stroke-width: 1.5px;
+    stroke: rgba(255,255,255,0.4);
+    stroke-width: 1px;
     opacity: 0.85;
     transition: opacity 0.2s, stroke-width 0.2s;
+}
+
+[data-theme="light"] .event-circle {
+    stroke: rgba(0,0,0,0.1);
 }
 
 .event-circle:hover {
@@ -312,11 +412,11 @@ header p {
 
 .axis path,
 .axis line {
-    stroke: rgba(255, 255, 255, 0.1);
+    stroke: var(--axis-color);
 }
 
 .axis text {
-    fill: #94a3b8;
+    fill: var(--text-secondary);
     font-size: 12px;
     font-family: 'Outfit', sans-serif;
 }
@@ -327,10 +427,14 @@ header p {
     display: none;
     max-width: 320px;
     padding: 20px;
-    color: #e2e8f0;
+    background-color: var(--tooltip-bg);
+    border: 1px solid var(--tooltip-border);
+    color: var(--tooltip-text);
     font-size: 0.95rem;
     pointer-events: none;
     z-index: 1000;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
     transition: opacity 0.2s ease, transform 0.2s ease;
 }
 
@@ -382,6 +486,10 @@ header p {
     }
     .search-group {
         grid-column: span 1;
+    }
+    header .header-flex {
+        flex-direction: column;
+        gap: 20px;
     }
     header h1 {
         font-size: 2rem;
