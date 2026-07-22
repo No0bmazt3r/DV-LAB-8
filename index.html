@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>World Important Dates Timeline</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Load D3.js -->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>World Important Dates Timeline</h1>
+            <p>Explore historical events across countries, event types, outcomes, and time.</p>
+        </header>
+
+        <section class="controls">
+            <div class="control-group search-group">
+                <label for="search">Search incident</label>
+                <input type="text" id="search" placeholder="Type an incident name...">
+            </div>
+            <div class="control-group">
+                <label for="country-filter">Country</label>
+                <select id="country-filter">
+                    <option value="All">All countries</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label for="event-type-filter">Event type</label>
+                <select id="event-type-filter">
+                    <option value="All">All event types</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label for="outcome-filter">Outcome</label>
+                <select id="outcome-filter">
+                    <option value="All">All outcomes</option>
+                </select>
+            </div>
+            <button id="reset-btn">Reset filters</button>
+        </section>
+
+        <section class="dashboard">
+            <div class="stat-card">
+                <span class="stat-label">Visible events</span>
+                <span class="stat-value" id="visible-events">0</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-label">Earliest year</span>
+                <span class="stat-value" id="earliest-year">-</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-label">Latest year</span>
+                <span class="stat-value" id="latest-year">-</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-label">Countries shown</span>
+                <span class="stat-value" id="countries-shown">0</span>
+            </div>
+        </section>
+
+        <section class="timeline-container">
+            <h2>Interactive historical timeline</h2>
+            <p>Scroll to zoom, drag to pan, and hover over a point for details.</p>
+            <div id="legend"></div>
+            <div id="timeline"></div>
+        </section>
+    </div>
+
+    <div id="tooltip" class="tooltip"></div>
+
+    <script src="script.js"></script>
+</body>
+</html>
