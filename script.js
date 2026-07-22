@@ -4,6 +4,7 @@ let filteredData = [];
 
 // DOM Elements
 const searchInput = document.getElementById("search");
+const searchOptions = document.getElementById("search-options");
 const countryFilter = document.getElementById("country-filter");
 const eventTypeFilter = document.getElementById("event-type-filter");
 const outcomeFilter = document.getElementById("outcome-filter");
@@ -21,7 +22,6 @@ const svg = d3.select("#timeline")
     .attr("width", width + margin.left + margin.right)
     .attr("height", height + margin.top + margin.bottom);
 
-// Clip path to keep circles within bounds during zoom/pan
 svg.append("defs").append("clipPath")
     .attr("id", "clip")
     .append("rect")
@@ -39,20 +39,18 @@ const xAxisGroup = chartGroup.append("g")
 
 // --- Scales ---
 let xScale = d3.scaleLinear().range([0, width]);
-let currentXScale = xScale; // To handle zooming
-// Y scale used purely for visual separation (jitter/distribution)
+let currentXScale = xScale; 
 let yScale = d3.scaleLinear().range([height, 0]).domain([0, 100]); 
-// Color scale based on Outcome
-const colorScale = d3.scaleOrdinal(d3.schemeCategory10);
+
+// Vibrant color palette for dark mode
+const customColors = ["#38bdf8", "#a855f7", "#34d399", "#fbbf24", "#f43f5e", "#818cf8", "#f472b6", "#4ade80", "#fcd34d"];
+const colorScale = d3.scaleOrdinal(customColors);
 
 // --- Load Data ---
-// Ensure the CSV filename is correct based on the download
 d3.csv("World Important Dates.csv").then(data => {
     // 1. Data Cleaning
     allData = data.filter(d => d["Year"] && !isNaN(d["Year"]) && d["Name of Incident"]).map(d => {
-        // Parse year
         let yearNum = parseFloat(d["Year"]);
-        
         return {
             IncidentName: d["Name of Incident"],
             Year: yearNum,
@@ -62,23 +60,24 @@ d3.csv("World Important Dates.csv").then(data => {
             EventType: d["Type of Event"] || "Unknown",
             Outcome: d["Outcome"] || "Unknown",
             Impact: d["Impact"] || "Unknown",
-            // Compute random Y position for scattering
+            // Jitter for y-axis
             yPos: Math.random() * 100 
         };
     });
 
     filteredData = [...allData];
 
-    // 2. Initialize UI (Filters, Legend)
+    // 2. Initialize UI (Filters, Legend, Search Options)
     initializeFilters();
     initializeLegend();
+    initializeSearchOptions();
     
     // Set fixed global color domain to ensure consistency
     colorScale.domain(Array.from(new Set(allData.map(d => d.Outcome))).filter(o => o !== "Unknown" && o !== ""));
 
     // 3. Setup Initial Scales & Render
     xScale.domain(d3.extent(allData, d => d.Year)).nice();
-    currentXScale = xScale; // Reset zoom
+    currentXScale = xScale; 
     renderTimeline();
     
     // 4. Setup Zoom behavior
@@ -86,11 +85,28 @@ d3.csv("World Important Dates.csv").then(data => {
     
 }).catch(error => {
     console.error("Error loading CSV:", error);
-    d3.select("#timeline").html(`<p style="color:red; padding: 20px;">Error loading data. Make sure <b>World Important Dates.csv</b> is in the same directory.</p>`);
+    d3.select("#timeline").html(`<div style="color:#f87171; padding: 20px; font-weight: 500;">Error loading data. Make sure <b>World Important Dates.csv</b> is in the same directory.</div>`);
 });
 
 
 // --- Functions ---
+
+function initializeSearchOptions() {
+    // Get unique incident names and sort them
+    const uniqueIncidents = Array.from(new Set(allData.map(d => d.IncidentName))).sort();
+    
+    // Create datalist options
+    const fragment = document.createDocumentFragment();
+    
+    // We can add all of them, or limit it if the dataset is massive, but HTML datalist usually handles thousands fine.
+    uniqueIncidents.forEach(incident => {
+        const option = document.createElement("option");
+        option.value = incident;
+        fragment.appendChild(option);
+    });
+    
+    searchOptions.appendChild(fragment);
+}
 
 function initializeFilters() {
     const countries = Array.from(new Set(allData.map(d => d.Country))).filter(c => c && c !== "Unknown").sort();
@@ -111,7 +127,6 @@ function initializeFilters() {
         countryFilter.value = "All";
         eventTypeFilter.value = "All";
         outcomeFilter.value = "All";
-        // Reset zoom as well
         svg.transition().duration(750).call(zoomBehavior.transform, d3.zoomIdentity);
         applyFilters();
     });
@@ -119,7 +134,6 @@ function initializeFilters() {
 
 function initializeLegend() {
     const legendContainer = d3.select("#legend");
-    // We will legend by Outcome
     const outcomes = Array.from(new Set(allData.map(d => d.Outcome))).filter(o => o && o !== "Unknown");
     colorScale.domain(outcomes);
     
@@ -127,7 +141,8 @@ function initializeLegend() {
         const item = legendContainer.append("div").attr("class", "legend-item");
         item.append("div")
             .attr("class", "legend-color")
-            .style("background-color", colorScale(outcome));
+            .style("background-color", colorScale(outcome))
+            .style("color", colorScale(outcome)); // For the box-shadow glow
         item.append("span").text(outcome);
     });
 }
@@ -171,7 +186,7 @@ function updateDashboard() {
 // Helper to format negative years as BCE
 function formatYear(year) {
     if (year < 0) return `${Math.abs(year)} BCE`;
-    if (year === 0) return `1 BCE`; // technically no year 0, but fallback
+    if (year === 0) return `1 BCE`; 
     return `${year} CE`;
 }
 
@@ -181,11 +196,14 @@ function drawXAxis(scale) {
         .tickFormat(d => formatYear(d))
         .ticks(10);
     xAxisGroup.call(xAxis);
+    
+    // Remove vertical tick lines to make it cleaner
+    xAxisGroup.selectAll(".tick line").attr("stroke", "rgba(255,255,255,0.05)");
+    xAxisGroup.select(".domain").attr("stroke", "rgba(255,255,255,0.1)");
 }
 
-// Define zoom behavior globally to access in reset
 const zoomBehavior = d3.zoom()
-    .scaleExtent([0.5, 20])
+    .scaleExtent([0.5, 30])
     .extent([[0, 0], [width, height]])
     .on("zoom", (event) => {
         currentXScale = event.transform.rescaleX(xScale);
@@ -199,24 +217,19 @@ function setupZoom() {
 }
 
 function renderTimeline() {
-    // Update Dashboard
     updateDashboard();
-
-    // Re-draw X Axis with current base scale (if no zoom applied) or currentXScale
     drawXAxis(currentXScale);
 
-    // Bind Data
     const circles = circlesGroup.selectAll("circle.event-circle")
-        .data(filteredData, d => d.IncidentName + d.Year); // unique key
+        .data(filteredData, d => d.IncidentName + d.Year); 
 
-    // Exit
     circles.exit()
         .transition()
         .duration(300)
         .attr("r", 0)
+        .style("opacity", 0)
         .remove();
 
-    // Enter & Update
     const enterCircles = circles.enter()
         .append("circle")
         .attr("class", "event-circle")
@@ -224,6 +237,7 @@ function renderTimeline() {
         .attr("cx", d => currentXScale(d.Year))
         .attr("r", 0)
         .attr("fill", d => colorScale(d.Outcome))
+        .style("color", d => colorScale(d.Outcome)) // Used for hover drop-shadow
         .on("mouseover", showTooltip)
         .on("mousemove", moveTooltip)
         .on("mouseout", hideTooltip);
@@ -233,59 +247,78 @@ function renderTimeline() {
         .duration(500)
         .attr("cx", d => currentXScale(d.Year))
         .attr("cy", d => yScale(d.yPos))
-        .attr("r", d => 6); // Base radius
+        .attr("r", 7)
+        .style("opacity", 0.85); 
 }
 
 function showTooltip(event, d) {
     d3.select(this)
         .transition()
         .duration(150)
-        .attr("r", 10);
+        .attr("r", 12);
 
     tooltip.style("display", "block")
+        .style("opacity", "0")
         .html(`
-            <strong>${d.IncidentName}</strong>
-            Year: ${formatYear(d.Year)}<br>
-            Country: ${d.Country}<br>
-            Type: ${d.EventType}<br>
-            Outcome: ${d.Outcome}<br>
-            Impact: ${d.Impact}
+            <div class="tooltip-header">${d.IncidentName}</div>
+            <div class="tooltip-body">
+                <div class="tooltip-label">Year</div>
+                <div class="tooltip-value">${formatYear(d.Year)}</div>
+                
+                <div class="tooltip-label">Country</div>
+                <div class="tooltip-value">${d.Country}</div>
+                
+                <div class="tooltip-label">Type</div>
+                <div class="tooltip-value">${d.EventType}</div>
+                
+                <div class="tooltip-label">Outcome</div>
+                <div class="tooltip-value" style="color: ${colorScale(d.Outcome)}">${d.Outcome}</div>
+                
+                <div class="tooltip-label">Impact</div>
+                <div class="tooltip-value">${d.Impact !== 'Unknown' ? d.Impact : 'Not specified'}</div>
+            </div>
         `);
+        
+    tooltip.transition().duration(200).style("opacity", "1");
 }
 
 function moveTooltip(event) {
-    const tooltipWidth = tooltip.node().offsetWidth;
-    // Keep tooltip within window bounds roughly
-    let xOffset = event.pageX + 15;
+    const tooltipNode = tooltip.node();
+    const tooltipWidth = tooltipNode.offsetWidth;
+    const tooltipHeight = tooltipNode.offsetHeight;
+    
+    let xOffset = event.pageX + 20;
+    let yOffset = event.pageY + 20;
+    
     if (xOffset + tooltipWidth > window.innerWidth) {
-        xOffset = event.pageX - tooltipWidth - 15;
+        xOffset = event.pageX - tooltipWidth - 20;
+    }
+    
+    if (yOffset + tooltipHeight > window.innerHeight) {
+        yOffset = event.pageY - tooltipHeight - 20;
     }
     
     tooltip
         .style("left", xOffset + "px")
-        .style("top", (event.pageY + 15) + "px");
+        .style("top", yOffset + "px");
 }
 
 function hideTooltip(event, d) {
     d3.select(this)
         .transition()
         .duration(150)
-        .attr("r", 6);
+        .attr("r", 7);
     
     tooltip.style("display", "none");
 }
 
-// Window resize handling
 window.addEventListener("resize", () => {
-    // Recalculate dimensions
     width = document.getElementById("timeline").clientWidth - margin.left - margin.right;
     
     svg.attr("width", width + margin.left + margin.right);
     svg.select("#clip rect").attr("width", width);
     
     xScale.range([0, width]);
-    // Note: A full responsive implementation with zoom is complex, 
-    // a simple re-render might reset the zoom. We'll reset it.
     svg.transition().duration(0).call(zoomBehavior.transform, d3.zoomIdentity);
     currentXScale = xScale;
     
